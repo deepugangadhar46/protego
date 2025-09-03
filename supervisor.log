@@ -1,0 +1,10 @@
+2025-09-03 06:37:14,156 INFO Set uid to user 0 succeeded
+2025-09-03 06:37:14,160 INFO supervisord started with pid 1449
+2025-09-03 06:37:15,162 INFO spawned: 'backend' with pid 1482
+2025-09-03 06:37:15,165 INFO spawned: 'frontend' with pid 1483
+2025-09-03 06:37:16,502 INFO success: backend entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-03 06:37:16,502 INFO success: frontend entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-03 06:37:43,401 WARN received SIGTERM indicating exit request
+2025-09-03 06:37:43,401 INFO waiting for backend, frontend to die
+2025-09-03 06:37:44,403 WARN stopped: frontend (exit status 1)
+2025-09-03 06:37:44,507 INFO stopped: backend (exit status 0)
