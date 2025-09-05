@@ -1,0 +1,6 @@
+*.joblib filter=lfs diff=lfs merge=lfs -text
+*.csv filter=lfs diff=lfs merge=lfs -text
+backend/monitoring/threat_model.joblib filter=lfs diff=lfs merge=lfs -text
+backend/monitoring/data/vip_threat_training.csv filter=lfs diff=lfs merge=lfs -text
+data/True.csv filter=lfs diff=lfs merge=lfs -text
+data/Fake.csv filter=lfs diff=lfs merge=lfs -text

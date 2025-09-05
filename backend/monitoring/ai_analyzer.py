@@ -6,6 +6,7 @@ import logging
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 import asyncio
+import joblib
 
 # ML and NLP imports
 try:
@@ -35,6 +36,8 @@ class AIThreatAnalyzer:
         self.threat_classifier = None
         self.emergent_client = None
         self.custom_model = None
+        self.baseline_model = None
+        self.vectorizer = None
         self.keyword_patterns = self._load_threat_patterns()
         self._initialize_models()
         
@@ -61,6 +64,20 @@ class AIThreatAnalyzer:
                 self.emergent_client = EmergentIntegrations()
                 logger.info("Emergent LLM integration initialized")
 
+            # Load baseline TF-IDF model
+            try:
+                vectorizer_path = "backend/monitoring/tfidf_vectorizer.joblib"
+                model_path = "backend/monitoring/threat_model.joblib"
+                
+                if os.path.exists(vectorizer_path) and os.path.exists(model_path):
+                    self.vectorizer = joblib.load(vectorizer_path)
+                    self.baseline_model = joblib.load(model_path)
+                    logger.info("Baseline TF-IDF threat model loaded successfully")
+                else:
+                    logger.info("Baseline model files not found, run demo_ml_pipeline.py first")
+            except Exception as e:
+                logger.warning(f"Baseline model load failed: {e}")
+                
             # Load custom scikit-learn model if present
             try:
                 from .ml_model import ThreatModel
@@ -273,7 +290,22 @@ class AIThreatAnalyzer:
     async def _classify_with_ai(self, content: str, vip_name: str) -> Dict[str, Any]:
         """Classify content using AI models"""
         try:
-            # Prefer custom model if available
+            # Prefer baseline TF-IDF model if available
+            if self.baseline_model and self.vectorizer:
+                text_tfidf = self.vectorizer.transform([content])
+                prediction = self.baseline_model.predict(text_tfidf)[0]
+                confidence = max(self.baseline_model.predict_proba(text_tfidf)[0])
+                
+                return {
+                    'fake_news_score': 1 - prediction,  # 0 = fake, 1 = real
+                    'is_fake': prediction == 0,
+                    'is_real': prediction == 1,
+                    'model_confidence': confidence,
+                    'model_type': 'baseline_tfidf',
+                    'threat_relevance': (1 - prediction) * confidence  # Higher if fake and confident
+                }
+            
+            # Use custom model if available
             if self.custom_model:
                 pred = self.custom_model.predict([content[:1000]])[0]
                 return {
@@ -283,6 +315,8 @@ class AIThreatAnalyzer:
                     'model_label': pred.label,
                     'model_type': 'custom_sklearn'
                 }
+            
+            # Fallback to transformer model
             if self.threat_classifier:
                 result = self.threat_classifier(content[:512])
                 toxicity_score = result[0]['score'] if result[0]['label'] == 'TOXIC' else 1 - result[0]['score']
@@ -357,9 +391,15 @@ class AIThreatAnalyzer:
             scores.append(sentiment['threat_relevance'])
             weights.append(0.2)
         
-        # AI toxicity (25% weight)
-        if ai['toxicity_score'] > 0:
-            scores.append(ai['toxicity_score'])
+        # AI classification (25% weight) - handle both fake news and toxicity
+        ai_score = 0
+        if 'fake_news_score' in ai and ai['fake_news_score'] > 0:
+            ai_score = ai['fake_news_score']
+        elif 'toxicity_score' in ai and ai['toxicity_score'] > 0:
+            ai_score = ai['toxicity_score']
+        
+        if ai_score > 0:
+            scores.append(ai_score)
             weights.append(0.25)
         
         # LLM analysis (15% weight)

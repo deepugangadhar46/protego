@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Threat Monitoring Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 30px; 
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .header p { font-size: 1.2rem; opacity: 0.9; }
+        .main-content { padding: 30px; }
+        
+        .kpi-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 30px; 
+        }
+        .kpi-card { 
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px; 
+            border-radius: 12px; 
+            text-align: center; 
+            border: 1px solid #dee2e6;
+            transition: transform 0.3s ease;
+        }
+        .kpi-card:hover { transform: translateY(-5px); }
+        .kpi-value { 
+            font-size: 3rem; 
+            font-weight: bold; 
+            color: #495057; 
+            margin-bottom: 10px;
+        }
+        .kpi-label { 
+            font-size: 1rem; 
+            color: #6c757d; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .threats-section { margin-bottom: 30px; }
+        .section-title { 
+            font-size: 1.8rem; 
+            color: #495057; 
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .threat-grid { 
+            display: grid; 
+            gap: 20px; 
+        }
+        .threat-card { 
+            background: white; 
+            border: 1px solid #e9ecef; 
+            border-radius: 12px; 
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .threat-card:hover { 
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .threat-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px; 
+        }
+        .threat-vip { 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            color: #495057; 
+        }
+        .threat-time { 
+            font-size: 0.9rem; 
+            color: #6c757d; 
+        }
+        
+        .threat-badges { margin-bottom: 15px; }
+        .badge { 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 0.8rem; 
+            font-weight: bold; 
+            margin-right: 8px;
+            display: inline-block;
+        }
+        .badge-critical { background: #dc3545; color: white; }
+        .badge-high { background: #fd7e14; color: white; }
+        .badge-medium { background: #ffc107; color: black; }
+        .badge-low { background: #28a745; color: white; }
+        .badge-platform { background: #6c757d; color: white; }
+        .badge-type { background: #17a2b8; color: white; }
+        
+        .threat-content { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px;
+            font-style: italic;
+            border-left: 4px solid #667eea;
+        }
+        
+        .threat-actions { 
+            display: flex; 
+            gap: 10px; 
+        }
+        .btn { 
+            padding: 8px 16px; 
+            border: none; 
+            border-radius: 6px; 
+            font-size: 0.9rem; 
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn:hover { opacity: 0.8; transform: translateY(-1px); }
+        
+        .analytics-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 20px; 
+            margin-top: 30px;
+        }
+        .analytics-card { 
+            background: white; 
+            border: 1px solid #e9ecef; 
+            border-radius: 12px; 
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .analytics-title { 
+            font-size: 1.3rem; 
+            color: #495057; 
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .analytics-title::before { 
+            content: '📊'; 
+            margin-right: 10px; 
+            font-size: 1.5rem;
+        }
+        
+        .status-banner { 
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
+            color: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin-top: 30px;
+            text-align: center;
+        }
+        .status-banner h3 { margin-bottom: 10px; font-size: 1.5rem; }
+        .status-features { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 15px; 
+            margin-top: 15px;
+        }
+        .feature { background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; }
+        
+        .live-indicator { 
+            display: inline-block; 
+            width: 12px; 
+            height: 12px; 
+            background: #28a745; 
+            border-radius: 50%; 
+            animation: pulse 2s infinite;
+            margin-right: 8px;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 VIP Threat & Misinformation Dashboard</h1>
+            <p><span class="live-indicator"></span>Real-time monitoring across multiple platforms</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-value">3</div>
+                    <div class="kpi-label">Active VIPs</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">12</div>
+                    <div class="kpi-label">Threats Today</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">4</div>
+                    <div class="kpi-label">Critical Threats</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">8</div>
+                    <div class="kpi-label">Platforms Monitored</div>
+                </div>
+            </div>
+            
+            <div class="threats-section">
+                <h2 class="section-title">🚨 Recent Threats</h2>
+                <div class="threat-grid">
+                    <div class="threat-card">
+                        <div class="threat-header">
+                            <div class="threat-vip">John Politician</div>
+                            <div class="threat-time">15 minutes ago</div>
+                        </div>
+                        <div class="threat-badges">
+                            <span class="badge badge-high">HIGH SEVERITY</span>
+                            <span class="badge badge-platform">Twitter</span>
+                            <span class="badge badge-type">Impersonation</span>
+                            <span style="font-size: 0.8rem; color: #6c757d;">87% confidence</span>
+                        </div>
+                        <div class="threat-content">
+                            "I am the real John Politician! Follow my official account for exclusive updates and insider information. DM for private meetings!"
+                        </div>
+                        <div class="threat-actions">
+                            <a href="#" class="btn btn-primary">View Source</a>
+                            <a href="#" class="btn btn-secondary">Screenshot</a>
+                            <a href="#" class="btn btn-secondary">Block Account</a>
+                        </div>
+                    </div>
+                    
+                    <div class="threat-card">
+                        <div class="threat-header">
+                            <div class="threat-vip">Jane Celebrity</div>
+                            <div class="threat-time">8 minutes ago</div>
+                        </div>
+                        <div class="threat-badges">
+                            <span class="badge badge-critical">CRITICAL</span>
+                            <span class="badge badge-platform">Facebook</span>
+                            <span class="badge badge-type">Misinformation</span>
+                            <span style="font-size: 0.8rem; color: #6c757d;">92% confidence</span>
+                        </div>
+                        <div class="threat-content">
+                            "BREAKING: Jane Celebrity caught in major scandal! Leaked photos reveal shocking truth about her private life. Share before it gets deleted!"
+                        </div>
+                        <div class="threat-actions">
+                            <a href="#" class="btn btn-primary">View Source</a>
+                            <a href="#" class="btn btn-secondary">Screenshot</a>
+                            <a href="#" class="btn btn-secondary">Report Post</a>
+                        </div>
+                    </div>
+                    
+                    <div class="threat-card">
+                        <div class="threat-header">
+                            <div class="threat-vip">Tech CEO Mike</div>
+                            <div class="threat-time">3 minutes ago</div>
+                        </div>
+                        <div class="threat-badges">
+                            <span class="badge badge-critical">CRITICAL</span>
+                            <span class="badge badge-platform">Pastebin</span>
+                            <span class="badge badge-type">Data Leak</span>
+                            <span style="font-size: 0.8rem; color: #6c757d;">95% confidence</span>
+                        </div>
+                        <div class="threat-content">
+                            "Tech CEO Mike private data dump: Email: mike@techcorp.com, Password: leaked_password_123, Personal documents attached..."
+                        </div>
+                        <div class="threat-actions">
+                            <a href="#" class="btn btn-primary">View Source</a>
+                            <a href="#" class="btn btn-secondary">Screenshot</a>
+                            <a href="#" class="btn btn-secondary">Takedown Request</a>
+                        </div>
+                    </div>
+
+                    <div class="threat-card">
+                        <div class="threat-header">
+                            <div class="threat-vip">John Politician</div>
+                            <div class="threat-time">22 minutes ago</div>
+                        </div>
+                        <div class="threat-badges">
+                            <span class="badge badge-medium">MEDIUM</span>
+                            <span class="badge badge-platform">Instagram</span>
+                            <span class="badge badge-type">Deepfake</span>
+                            <span style="font-size: 0.8rem; color: #6c757d;">78% confidence</span>
+                        </div>
+                        <div class="threat-content">
+                            "Video of John Politician making controversial statements at private meeting. AI-generated content detected."
+                        </div>
+                        <div class="threat-actions">
+                            <a href="#" class="btn btn-primary">View Source</a>
+                            <a href="#" class="btn btn-secondary">Screenshot</a>
+                            <a href="#" class="btn btn-secondary">Flag Content</a>
+                        </div>
+                    </div>
+
+                    <div class="threat-card">
+                        <div class="threat-header">
+                            <div class="threat-vip">Jane Celebrity</div>
+                            <div class="threat-time">35 minutes ago</div>
+                        </div>
+                        <div class="threat-badges">
+                            <span class="badge badge-high">HIGH</span>
+                            <span class="badge badge-platform">Telegram</span>
+                            <span class="badge badge-type">Campaign</span>
+                            <span style="font-size: 0.8rem; color: #6c757d;">89% confidence</span>
+                        </div>
+                        <div class="threat-content">
+                            "Coordinated attack campaign detected across 15 Telegram channels spreading false information about Jane Celebrity's charity work."
+                        </div>
+                        <div class="threat-actions">
+                            <a href="#" class="btn btn-primary">View Campaign</a>
+                            <a href="#" class="btn btn-secondary">Evidence</a>
+                            <a href="#" class="btn btn-secondary">Report All</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <div class="analytics-title">Platform Distribution</div>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Twitter</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 100px; height: 8px; background: #e9ecef; border-radius: 4px;">
+                                    <div style="width: 60%; height: 100%; background: #1da1f2; border-radius: 4px;"></div>
+                                </div>
+                                <span style="font-weight: bold;">5</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Facebook</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 100px; height: 8px; background: #e9ecef; border-radius: 4px;">
+                                    <div style="width: 40%; height: 100%; background: #4267b2; border-radius: 4px;"></div>
+                                </div>
+                                <span style="font-weight: bold;">3</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Telegram</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 100px; height: 8px; background: #e9ecef; border-radius: 4px;">
+                                    <div style="width: 25%; height: 100%; background: #0088cc; border-radius: 4px;"></div>
+                                </div>
+                                <span style="font-weight: bold;">2</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Pastebin</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 100px; height: 8px; background: #e9ecef; border-radius: 4px;">
+                                    <div style="width: 25%; height: 100%; background: #02a95c; border-radius: 4px;"></div>
+                                </div>
+                                <span style="font-weight: bold;">2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analytics-card">
+                    <div class="analytics-title">Threat Severity</div>
+                    <div style="display: grid; gap: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="badge badge-critical">CRITICAL</span>
+                            </div>
+                            <span style="font-size: 1.5rem; font-weight: bold; color: #dc3545;">4</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="badge badge-high">HIGH</span>
+                            </div>
+                            <span style="font-size: 1.5rem; font-weight: bold; color: #fd7e14;">5</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="badge badge-medium">MEDIUM</span>
+                            </div>
+                            <span style="font-size: 1.5rem; font-weight: bold; color: #ffc107;">2</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="badge badge-low">LOW</span>
+                            </div>
+                            <span style="font-size: 1.5rem; font-weight: bold; color: #28a745;">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <div class="analytics-title">Threat Types</div>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Impersonation</span>
+                            <span style="font-weight: bold;">4 threats</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Misinformation</span>
+                            <span style="font-weight: bold;">3 threats</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Data Leaks</span>
+                            <span style="font-weight: bold;">2 threats</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Deepfakes</span>
+                            <span style="font-weight: bold;">2 threats</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Campaigns</span>
+                            <span style="font-weight: bold;">1 threat</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <div class="analytics-title">VIP Coverage</div>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>John Politician</span>
+                            <span style="font-weight: bold; color: #fd7e14;">6 threats</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Jane Celebrity</span>
+                            <span style="font-weight: bold; color: #dc3545;">4 threats</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Tech CEO Mike</span>
+                            <span style="font-weight: bold; color: #28a745;">2 threats</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-banner">
+                <h3>🎯 System Status: FULLY OPERATIONAL</h3>
+                <p>Comprehensive VIP monitoring system with advanced threat detection</p>
+                <div class="status-features">
+                    <div class="feature">
+                        <strong>Multi-Source Monitoring</strong><br>
+                        Twitter, Facebook, Instagram, LinkedIn, Telegram, Pastebin, GitHub, YouTube
+                    </div>
+                    <div class="feature">
+                        <strong>Advanced Detection</strong><br>
+                        Impersonation, Misinformation, Data Leaks, Deepfakes, Coordinated Campaigns
+                    </div>
+                    <div class="feature">
+                        <strong>Evidence Collection</strong><br>
+                        Screenshots, Source URLs, Metadata, Confidence Scoring, Campaign Clustering
+                    </div>
+                    <div class="feature">
+                        <strong>Real-time Alerts</strong><br>
+                        Instant notifications, Severity classification, Automated response workflows
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

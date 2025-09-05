@@ -1,0 +1,5 @@
+2025-09-04 07:22:04,620 - ml_classifier - INFO - ML models loaded successfully
+2025-09-04 07:22:04,627 - ml_service - INFO - ML classifier initialized
+2025-09-04 07:22:04,627 - ml_service - INFO - Fact checker initialized
+2025-09-04 07:23:11,326 - ml_service - INFO - ML classifier initialized
+2025-09-04 07:23:11,326 - ml_service - INFO - Fact checker initialized

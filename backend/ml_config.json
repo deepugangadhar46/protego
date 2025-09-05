@@ -1,0 +1,18 @@
+{
+  "model_settings": {
+    "threat_threshold": 0.7,
+    "confidence_threshold": 0.6,
+    "fact_check_enabled": true,
+    "auto_flag_threshold": 0.8
+  },
+  "api_settings": {
+    "fact_check_timeout": 10,
+    "max_content_length": 5000,
+    "batch_processing": true
+  },
+  "logging": {
+    "log_level": "INFO",
+    "save_predictions": true,
+    "alert_high_risk": true
+  }
+}
